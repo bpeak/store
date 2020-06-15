@@ -8,7 +8,7 @@ class Store {
 	get(){
 		return this._state
 	}
-	on(propPath, listener) {
+	on(propPath, listener, isSync = false) {
 		if(Array.isArray(propPath)) {
 			propPath = propPath.map((v) => v.trim()).sort().join(",")
 		}
@@ -17,10 +17,10 @@ class Store {
 		}
 		this._events.get(propPath).push(listener)
 
-		//TODO: init event on 시에만 emitQueue에 푸시기능 추가
-		this._emitQueue.add(propPath)
-
-		this._deferredUpdate(this._state, this._state)
+		if(isSync) {
+			this._emitQueue.add(propPath)
+			this._deferredUpdate(this._state, this._state)
+		}
 	}		
 	set(state) {
 		const prevState = {...this._state}
@@ -75,13 +75,15 @@ store.on("boards.length", (state, prevState) => {
 	console.log("boards.length changed")
 })
 
+// Run as default state to match the sync.
 store.on("person.name", (state, prevState) => {
 	console.log("person.name changed")
-})
+}, true)
 
+// Run as default state to match the sync.
 store.on("isMenuOpen", (state, prevState) => {
 	console.log(`isMenuOpen changed [prev:${prevState.isMenuOpen}] => [next:${state.isMenuOpen}]`)
-})
+}, true)
 
 setTimeout(() => {
 	// update isMenuOpen
