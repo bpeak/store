@@ -2,59 +2,58 @@ class Store {
 	constructor(initialState = {}) {
 		this._state = initialState
 		this._events = new Map()
-		this._emitQueue = new Set()
 		this._guard = false
-		// test
+		this._currTicklisteners = new Set()
+	}
+	on(props, listener) {
+		if(!Array.isArray(props)) {
+			props = [props]
+		}
+		props.forEach(prop => {
+			if(!this._events.has(prop)){ this._events.set(prop, []) }
+			this._events.get(prop).push(listener)
+		})
+		return props
+	}
+	onAndSync(props, listener) { 
+		props = this.on(props, listener)
+		this._deferredUpdate(props, this._state, this._state)
 	}
 	get(){
 		return this._state
 	}
-	on(propPath, listener, isSync = false) {
-		if(Array.isArray(propPath)) {
-			propPath = propPath.map((v) => v.trim()).sort().join(",")
-		}
-		if(!this._events.has(propPath)) {
-			this._events.set(propPath, [])
-		}
-		this._events.get(propPath).push(listener)
-
-		if(isSync) {
-			this._emitQueue.add(propPath)
-			this._deferredUpdate(this._state, this._state)
-		}
-	}		
 	set(state) {
 		const prevState = {...this._state}
 		const nextState = {...this._state, ...state}
 
-		for(let propPath of this._events.keys()) {
-			const prevValues = propPath.split(",").map(v => this._getValue(prevState, v))
-			const nextValues = propPath.split(",").map(v => this._getValue(nextState, v))
-			const isChangedValue = prevValues.some((v, i) => v !== nextValues[i])
-			if(isChangedValue) {
-				this._emitQueue.add(propPath)
-			}
-		}
-		this._deferredUpdate(nextState, prevState)
+		const changedProps = [...this._events.keys()].filter(prop => {
+			const prevValue = this._getValue(prevState, prop)
+			const nextValue = this._getValue(nextState, prop)
+			const isChanged = prevValue !== nextValue
+			return isChanged
+		})
 
+		if(changedProps.length >= 1){
+			this._deferredUpdate(changedProps, nextState, prevState)	
+		}
 	}	
-	_getValue(state, propPath) { 
-		return propPath.split(".").reduce((v, key) => v[key], state)
+	_getValue(state, prop) { 
+		return prop.split(".").reduce((v, key) => v[key], state)
 	}
-	_emit(propPath, prevState) {
-		const nextState = this._state
-		this._events.get(propPath).forEach(listener => listener(nextState, prevState))
-	}
-	_deferredUpdate(nextState, prevState) {
+	_deferredUpdate(props, nextState, prevState) {
 		this._state = nextState
+		props.forEach(prop => {
+			[...this._events.get(prop).values()].forEach(listener => {
+				this._currTicklisteners.add(listener)
+			})
+		})
 		if(!this._guard) {
 			this._guard = true
 			Promise.resolve().then(() => {
 				this._guard = false
-				this._emitQueue.forEach(propPath => {
-					this._emit(propPath, prevState)
-				})
-				this._emitQueue = new Set()
+				const nextState = this._state
+				this._currTicklisteners.forEach(listener => listener(nextState, prevState))
+				this._currTicklisteners.clear()
 			})
 		}
 	}
@@ -77,14 +76,18 @@ store.on("boards.length", (state, prevState) => {
 })
 
 // Run as default state to match the sync.
-store.on("person.name", (state, prevState) => {
-	console.log("person.name changed")
-}, true)
+store.onAndSync("person.name", (state, prevState) => {
+	console.log(`person.name changed [prev:${prevState.person.name}] => [next:${state.person.name}]`)
+})
 
 // Run as default state to match the sync.
-store.on("isMenuOpen", (state, prevState) => {
+store.onAndSync("isMenuOpen", (state, prevState) => {
 	console.log(`isMenuOpen changed [prev:${prevState.isMenuOpen}] => [next:${state.isMenuOpen}]`)
-}, true)
+})
+
+store.on(['isMenuOpen', 'boards', 'boards.length'], (state) => {
+	console.log('whatever changed')
+})
 
 setTimeout(() => {
 	// update isMenuOpen
