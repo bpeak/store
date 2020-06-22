@@ -4,6 +4,7 @@ class Store {
 		this._events = new Map()
 		this._emitQueue = new Set()
 		this._guard = false
+		// test
 	}
 	get(){
 		return this._state
