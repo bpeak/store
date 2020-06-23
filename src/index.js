@@ -26,7 +26,7 @@ class Store {
 		const prevState = {...this._state}
 		const nextState = {...this._state, ...state}
 
-		const changedProps = [...this._events.keys()].filter(prop => {
+		const changedProps = Array.from(this._events.keys()).filter(prop => {
 			const prevValue = this._getValue(prevState, prop)
 			const nextValue = this._getValue(nextState, prop)
 			const isChanged = prevValue !== nextValue
