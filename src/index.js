@@ -43,7 +43,7 @@ class Store {
 	_deferredUpdate(props, nextState, prevState) {
 		this._state = nextState
 		props.forEach(prop => {
-			[...this._events.get(prop).values()].forEach(listener => {
+			Array.from(this._events.get(prop).values()).forEach(listener => {
 				this._currTicklisteners.add(listener)
 			})
 		})
