@@ -3,8 +3,8 @@
   "version": "1.0.5",
   "license": "MIT",
   "main": "dist/index.js",
-  "module": "index.esm.js",
-  "unpkg": "index.umd.js",
+  "module": "dist/index.esm.js",
+  "unpkg": "dist/index.umd.js",
   "scripts": {
     "dev": "rollup src/index.test.js --file dist/index.test.js --watch",
     "build": "microbundle -i src/index.js -o dist/index.js --name Store && yarn polyfill",
