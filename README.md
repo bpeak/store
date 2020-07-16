@@ -27,3 +27,33 @@ store.set({
 names changed: ['kihyun', 'jihyung', 'iksu', 'dongeun']
 isMenuOpen changed: true
 ```
+
+## Installation
+```
+npm install @bpeak/store
+```
+```js
+const Store = require('@bpeak/store');
+const store = new Store();
+```
+
+## UMD
+```html
+<script src="https://unpkg.com/@bpeak/store"></script>
+<script>
+    const store = new Store();
+</script>
+```
+
+## ESM
+```html
+<script type="module">
+    import Store from 'https://unpkg.com/@bpeak/store/dist/index.esm.js'
+    const store = new Store();
+</script>
+```
+
+## API
+
+## Licence
+MIT
