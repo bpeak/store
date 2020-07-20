@@ -29,8 +29,8 @@ isMenuOpen changed: true
 ```
 
 ## Installation
-```
-npm install @bpeak/store
+```bash
+$ npm install @bpeak/store
 ```
 ```js
 const Store = require('@bpeak/store');
